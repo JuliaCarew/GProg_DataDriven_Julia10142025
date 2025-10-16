@@ -19,11 +19,35 @@ public class MovePlayer : MonoBehaviour
     public float tileSize = 0.08f;
     public TileBase playerTile; // updating the player sprite
     public TileBase enemyTile;
+    
+    // Data-driven settings loaded from JSON
+    private GameSettings gameSettings;
 
     void Start()
     {
+        // Load JSON data
+        gameSettings = JsonDataLoader.GameSettings;
+        tileSize = gameSettings.mapSettings.tileSize;
+        
         movePoint.parent = null;  // allows movepoint to dictate player's direction/ can be moved on it's own    
         ResetPosition();
+        
+        // Subscribe to data reload events
+        JsonDataLoader.OnDataReloaded += OnDataReloaded;
+    }
+    
+    void OnDestroy()
+    {
+        // Unsubscribe from data reload events
+        JsonDataLoader.OnDataReloaded -= OnDataReloaded;
+    }
+    
+    void OnDataReloaded()
+    {
+        Debug.Log("MovePlayer: Data reloaded, updating settings...");
+        gameSettings = JsonDataLoader.GameSettings;
+        tileSize = gameSettings.mapSettings.tileSize;
+        Debug.Log($"Updated tile size: {tileSize}");
     }
     void Update()
     {
@@ -42,12 +66,9 @@ public class MovePlayer : MonoBehaviour
         // Get the tile at the specified grid position
         TileBase tileAtPosition = myTilemap.GetTile(cellPosition);
 
-        Debug.Log($"Player is checking tile at ({x}, {y}): {tileAtPosition}");
-
         // Allow movement if the tile is null (empty) or is explicitly _none
         if (tileAtPosition == null || tileAtPosition == loadMap._none)
         {
-            Debug.Log("Player can walk");
             return true; 
         }
 
@@ -57,12 +78,10 @@ public class MovePlayer : MonoBehaviour
             tileAtPosition == loadMap._chest ||
             tileAtPosition == borderTile)
         {
-            Debug.Log($"Player is blocked at ({x}, {y}): {tileAtPosition}");
             return false;
         }
         if (tileAtPosition == loadMap._enemy)
         {
-            Debug.Log($"Player is blocked by ENEMY at ({x}, {y}): {tileAtPosition}");
             return false;
         }
         if (tileAtPosition == loadMap._win)
@@ -86,18 +105,28 @@ public class MovePlayer : MonoBehaviour
             myTilemap.SetTile(previousPosition, null);  // Remove the player tile from the old position
         }
 
-        Vector3 spawnPosition = playerSpawnPoint.transform.position;
+        // Find the player spawn position from the tilemap (look for '$' character)
+        Vector3Int playerSpawnTilePos = FindPlayerSpawnPosition();
+        
+        // Convert tilemap position to world position
+        Vector3 worldPosition = myTilemap.CellToWorld(playerSpawnTilePos);
+        
+        // Set movePoint to the correct world position
         movePoint.position = new Vector3(
-            Mathf.Round(spawnPosition.x / tileSize) * tileSize,
-            Mathf.Round(spawnPosition.y / tileSize) * tileSize,
+            worldPosition.x,
+            worldPosition.y,
             movePoint.position.z
         );
        
-        DrawPlayer(0, 0, 
-            Mathf.RoundToInt(spawnPosition.x / tileSize), 
-            Mathf.RoundToInt(spawnPosition.y / tileSize)
-        );
-        Debug.Log($"Player spawn position set to {spawnPosition}");
+        DrawPlayer(0, 0, playerSpawnTilePos.x, playerSpawnTilePos.y);
+        Debug.Log($"Player spawn position set to tilemap position {playerSpawnTilePos} -> world position {worldPosition}");
+    }
+    
+    // Find the player spawn position from the loaded map
+    private Vector3Int FindPlayerSpawnPosition()
+    {
+        // Use the player spawn position stored by LoadMap
+        return loadMap.playerSpawnPosition;
     }
 
     // ---------- MOVE PLAYER ---------- //
@@ -131,13 +160,11 @@ public class MovePlayer : MonoBehaviour
                 movePoint.position.z
             );     
             DrawPlayer(playerX, playerY, targetX, targetY);  // Draw the player at the new position
-            Debug.Log($"Player moved to new position: {targetX}, {targetY}");
-
+            
+            // Check if player is now adjacent to an enemy and can attack
+            CheckForEnemyAttack();
+            
             combat.PlayerCompletedAction();
-        }
-        else
-        {
-            Debug.Log($"Player cannot move to position: {targetX}, {targetY}");
         }
     }
 
@@ -163,11 +190,25 @@ public class MovePlayer : MonoBehaviour
         }
         // Place the player tile at the new position
         myTilemap.SetTile(currentPosition, playerTile);
-
-        foreach (EnemyController enemyref in FindObjectsOfType<EnemyController>())
-        {
-            enemyref.MoveTowardsPlayer();
-        }
+        
         myTilemap.RefreshAllTiles();
     }
+    
+    // ---------- CHECK FOR ENEMY ATTACK ---------- //
+        void CheckForEnemyAttack()
+        {
+            Debug.Log("Checking for enemy attack...");
+            // Check if player is adjacent to any enemy and can attack
+            if (combat.NextToEnemy())
+            {
+                Debug.Log("Player is next to enemy, attacking!");
+                // Player attacks enemy using damage from HealthSystem (which gets updated from JSON)
+                int playerDamage = loadMap.playerHealthSystemref.playerDamage;
+                combat.PlayerAttacksEnemy(playerDamage);
+            }
+            else
+            {
+                Debug.Log("Player is not next to any enemy");
+            }
+        }
 }

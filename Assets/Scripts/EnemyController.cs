@@ -99,7 +99,7 @@ public class EnemyController : MonoBehaviour
         if (targetTilePos == playerTilePos)
         {
             Debug.Log("Enemy attacks the player!");
-            loadMap.combatref.EnemyAttacksPlayer(enemyDamage);
+            loadMap.combatref.EnemyAttacksPlayer(enemyDamage, this);
         }
         else if (CanMove(targetTilePos.x, targetTilePos.y))
         {
@@ -113,27 +113,39 @@ public class EnemyController : MonoBehaviour
         Vector3Int previousPosition = new Vector3Int(previousX, previousY, 0);
         Vector3Int currentPosition = new Vector3Int(targetX, targetY, 0);
 
+        // Clear the previous tile
         if (loadMap.myTilemap.HasTile(previousPosition))
         {
             loadMap.myTilemap.SetTile(previousPosition, null);
         }
+        
+        // Set the new tile
         loadMap.myTilemap.SetTile(currentPosition, enemyTile);
+        
+        // Update enemy position tracking
+        enemyPosition = currentPosition;
+        
+        // Update GameObject transform to match the new tile position
+        transform.position = loadMap.myTilemap.CellToWorld(currentPosition);
     }
 
     // ---------- HEALTH SYSTEM ---------- //
     public void TakeDamage(int damage)
     {
-        if (loadMap.healthSystemref != null)
+        if (healthSystemref != null)
         {
-            loadMap.healthSystemref.TakeDamage(damage);
-            loadMap.healthSystemref.UpdateHealthUI();
+            healthSystemref.TakeDamage(damage);
+            // Sync the EnemyController's currentHealth with the HealthSystem's currentHealth
+            currentHealth = healthSystemref.currentHealth;
+            healthSystemref.UpdateHealthUI();
+            Debug.Log($"Enemy health synced: EnemyController.currentHealth = {currentHealth}, HealthSystem.currentHealth = {healthSystemref.currentHealth}");
         }
     }
     public void Die()
     {
-        if (loadMap.healthSystemref != null)
+        if (healthSystemref != null)
         {
-            loadMap.healthSystemref.Die(loadMap.enemyPosition);
+            healthSystemref.Die(enemyPosition);
         }
         Destroy(gameObject);
     }

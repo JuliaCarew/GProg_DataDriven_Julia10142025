@@ -1,0 +1,28 @@
+{
+  "enemies": [
+    {
+      "enemyId": "basic_enemy",
+      "name": "Basic Enemy",
+      "maxHealth": 30,
+      "damage": 5,
+      "moveSpeed": 0.8,
+      "description": "A basic enemy with standard stats"
+    },
+    {
+      "enemyId": "strong_enemy",
+      "name": "Strong Enemy",
+      "maxHealth": 50,
+      "damage": 8,
+      "moveSpeed": 0.6,
+      "description": "A stronger enemy with more health and damage"
+    },
+    {
+      "enemyId": "fast_enemy",
+      "name": "Fast Enemy",
+      "maxHealth": 20,
+      "damage": 3,
+      "moveSpeed": 1.2,
+      "description": "A fast enemy with lower health but higher speed"
+    }
+  ]
+}

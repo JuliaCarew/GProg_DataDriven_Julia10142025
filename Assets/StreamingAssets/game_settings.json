@@ -1,0 +1,43 @@
+{
+  "gameSettings": {
+    "mapSettings": {
+      "defaultMap": "map1",
+      "defaultMapWidth": 17,
+      "defaultMapHeight": 8,
+      "tileSize": 0.08,
+      "mapCenterX": 0.0,
+      "mapCenterY": 0.0,
+      "mapCenterZ": 0.0
+    },
+    "playerSettings": {
+      "maxHealth": 50,
+      "playerDamage": 10,
+      "isPlayer": true
+    },
+    "enemySettings": {
+      "maxHealth": 30,
+      "enemyDamage": 5,
+      "isPlayer": false
+    },
+    "combatSettings": {
+      "turnDelay": 0.2,
+      "allowDiagonalAttacks": true,
+      "wallCollisionEnabled": true
+    },
+    "uiSettings": {
+      "healthTextPrefix": "Player HP: ",
+      "enemyHealthTextPrefix": "Enemy HP: ",
+      "gameOverText": "Game Over!",
+      "levelCompleteText": "Level Complete!"
+    },
+    "tileSettings": {
+      "wallCharacter": "#",
+      "doorCharacter": "O",
+      "chestCharacter": "*",
+      "enemyCharacter": "@",
+      "playerCharacter": "$",
+      "emptyCharacter": " ",
+      "winCharacter": "%"
+    }
+  }
+}
