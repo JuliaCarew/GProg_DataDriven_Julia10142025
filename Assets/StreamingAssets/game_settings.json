@@ -41,3 +41,16 @@
     }
   }
 }
+// For Random Maps:
+// "mapSettings": {
+//  "defaultMap": "random",
+//  "defaultMapWidth": 25,
+//  "defaultMapHeight": 15,
+//  ...
+// }
+
+// For Premade Maps:
+// "mapSettings": {
+//  "defaultMap": "map1",
+//  ...
+//}
