@@ -2104,6 +2104,7 @@ MonoBehaviour:
   mapCenter: {fileID: 2031121562}
   enemyPosition: {x: 0, y: 0, z: 0}
   myTilemap: {fileID: 2097187412}
+  gridComponent: {fileID: 521071556}
   _wall: {fileID: 11400000, guid: 613e06516158e3143a3c90ab24d6c8f6, type: 2}
   _door: {fileID: 11400000, guid: c99b3093eafbbc24a9770a55571218d7, type: 2}
   _chest: {fileID: 11400000, guid: 716da1dfd4e09e448ab44f1b77312253, type: 2}

@@ -29,12 +29,12 @@ public class LoadMap : MonoBehaviour
     public TileBase _win;
 
     [Header("Tile String Characters")]
-    public string wall = "#";
-    public string door = "O";
-    public string chest = "*";
-    public string enemy = "@";
-    public string none = " ";
-    public string win = "%";
+    public string wall;
+    public string door;
+    public string chest;
+    public string enemy;
+    public string none;
+    public string win;
 
     [Header("Map Dimensions")]
     public int mapWidth;
@@ -45,13 +45,17 @@ public class LoadMap : MonoBehaviour
     
     // Data-driven settings loaded from JSON
     private GameSettings gameSettings;
+    private string currentMapName; // Track current map to detect changes
 
     void Start()
     {
         // Load JSON data
         LoadJsonData();
         
-        // Check if we should generate a random map or load a premade one
+        // Store the current map name
+        currentMapName = gameSettings.mapSettings.defaultMap;
+        
+        // Check for generate a random map or load a premade one
         if (gameSettings.mapSettings.defaultMap.ToLower() == "random")
         {
             Debug.Log("Generating random map...");
@@ -63,13 +67,11 @@ public class LoadMap : MonoBehaviour
             LoadPremadeMap();
         }
         
-        // Subscribe to data reload events
         JsonDataLoader.OnDataReloaded += OnDataReloaded;
     }
     
     void OnDestroy()
     {
-        // Unsubscribe from data reload events
         JsonDataLoader.OnDataReloaded -= OnDataReloaded;
     }
     
@@ -77,7 +79,30 @@ public class LoadMap : MonoBehaviour
     {
         Debug.Log("LoadMap: Data reloaded, updating settings...");
         LoadJsonData();
-        UpdateExistingEnemies();
+        
+        string newMapName = gameSettings.mapSettings.defaultMap;
+        if (newMapName != currentMapName)
+        {
+            Debug.Log($"Map changed from '{currentMapName}' to '{newMapName}'. Reloading map...");
+            currentMapName = newMapName;
+            
+            // Reload or regenerate the map based on the new setting
+            if (newMapName.ToLower() == "random")
+            {
+                Debug.Log("Generating new random map...");
+                GenerateRandomMap();
+            }
+            else
+            {
+                Debug.Log("Loading new premade map...");
+                LoadPremadeMap();
+            }
+        }
+        else
+        {
+            Debug.Log("Map name unchanged, updating existing enemies...");
+            UpdateExistingEnemies();
+        }
     }
     
     void UpdateExistingEnemies()
@@ -106,7 +131,6 @@ public class LoadMap : MonoBehaviour
             int oldMaxHealth = playerHealthSystemref.maxHealth;
             playerHealthSystemref.maxHealth = gameSettings.playerSettings.maxHealth;
             
-            // If the new max health is higher, increase current health proportionally
             if (gameSettings.playerSettings.maxHealth > oldMaxHealth)
             {
                 float healthRatio = (float)playerHealthSystemref.currentHealth / oldMaxHealth;
@@ -210,7 +234,7 @@ public class LoadMap : MonoBehaviour
         }
         
         Debug.Log($"Loading map from JSON settings: {Path.GetFileName(selectedFile)}");
-        string[] myLines = File.ReadAllLines(selectedFile); // create string from all idv. lines read
+        string[] myLines = File.ReadAllLines(selectedFile); 
  
         mapHeight = myLines.Length;
         mapWidth = myLines[0].Length;
@@ -241,10 +265,9 @@ public class LoadMap : MonoBehaviour
         // placing tiles
         for (int y = 0; y < myLines.Length; y++) 
         {
-            string myLine = myLines[y]; // so each line gets read in proper order one-by-one
-            int tileY = y; // Use direct Y mapping - first line = Y=0, second line = Y=1, etc.
+            string myLine = myLines[y]; 
+            int tileY = y; 
             
-            // Replace tabs with spaces to ensure consistent spacing
             myLine = myLine.Replace('\t', ' ');
             Debug.Log($"Reading Line {y}: '{myLine}' -> tileY={tileY}");
 
@@ -363,7 +386,6 @@ public class LoadMap : MonoBehaviour
             }
         }
         
-        // Place player spawn at a safe location (near bottom-left corner, but not on edge)
         playerSpawnPosition = new Vector3Int(2, 2, 0) + mapOrigin;
         myTilemap.SetTile(playerSpawnPosition, movePlayerref.playerTile);
         Debug.Log($"Player spawn set at position: {playerSpawnPosition}");

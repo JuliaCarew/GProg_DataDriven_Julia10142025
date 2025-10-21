@@ -1,7 +1,7 @@
 {
   "gameSettings": {
     "mapSettings": {
-      "defaultMap": "map1",
+      "defaultMap": "random",
       "defaultMapWidth": 17,
       "defaultMapHeight": 8,
       "tileSize": 0.08,
@@ -41,16 +41,3 @@
     }
   }
 }
-// For Random Maps:
-// "mapSettings": {
-//  "defaultMap": "random",
-//  "defaultMapWidth": 25,
-//  "defaultMapHeight": 15,
-//  ...
-// }
-
-// For Premade Maps:
-// "mapSettings": {
-//  "defaultMap": "map1",
-//  ...
-//}
